@@ -1,0 +1,16 @@
+{
+  "name": "flip-tile",
+  "subdomain": "tmyrden-flip-tile",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "version": "0.0.1-7",
+  "engines": {
+    "node": "0.8.x"
+  },
+  "dependencies": {
+    "socket.io": "0.9.13",
+    "redis": "0.8.2",
+    "node-static": "0.6.7"
+  }
+}
