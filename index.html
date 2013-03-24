@@ -10,10 +10,15 @@
                     $('#incomingChatMessages').append($('<li>Connected</li>'));
      
                     iosocket.on('message', function(message) {
+                    	console.log(typeof message);
                         $('#incomingChatMessages').append($('<li></li>').text(message));
                     });
                     iosocket.on('disconnect', function() {
                         $('#incomingChatMessages').append('<li>Disconnected</li>');
+                    });
+                    iosocket.on('timer', function(value) {
+	                    console.log(value);
+	                    $('span').text(value);
                     });
                 });
      
@@ -32,5 +37,6 @@
     <body>
         Incoming Chat:&nbsp;<ul id="incomingChatMessages"></ul>
         <input type="text" id="outgoingChatMessage">
+        <span style="font-size: 30px"></span>
     </body>
 </html>

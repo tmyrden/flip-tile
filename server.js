@@ -1,9 +1,12 @@
-// reference the http module so we can create a webserver
 var http = require("http"),
     socketio = require("socket.io"),
     redis = require("redis"),
     fs = require("fs");
     
+var board = new Board();
+
+var clients = new Array();
+
 var redisClient = redis.createClient(6379, 'nodejitsudb6390461707.redis.irstack.com');
 redisClient.auth("nodejitsudb6390461707.redis.irstack.com:f327cfe980c971946e80b8e975fbebb4", function(err) {
   if (err) {
@@ -11,14 +14,11 @@ redisClient.auth("nodejitsudb6390461707.redis.irstack.com:f327cfe980c971946e80b8
   }
 });
 redisClient.on('ready', function () {
-	
+	runTimer(20);
 });
 
-
-// create a server
 var server = http.createServer(function(req, res) {
     res.writeHead(200, { 'Content-type': 'text/html'});
-    // on every request, we'll output 'Hello world'
     res.end(fs.readFileSync(__dirname + '/index.html'));
 }).listen(8080);
 
@@ -26,15 +26,173 @@ var io = socketio.listen(server);
 
 io.on('connection', function (socket)
 {
-    socket.send("Welcome!");
+	clients[socket.id] = socket.id;
+	var newClient = new Client();
+	newClient.setId(socket.id);
+	console.log(newClient);
+	newClient.setName("Thomas");
+	console.log(newClient);
     socket.on('message', function(msg)
     {
         console.log("Message Received: ", msg);
         socket.broadcast.emit('message', msg);
     });
+    
+    socket.on('disconnect', function()
+    {
+	    clients[this.id] = null;
+	    console.log(clients);
+    });
 });
 
-setInterval(function ()
+function Client()
 {
-    io.sockets.emit('message', 'test123');
-}, 5000);
+	this.id = null;
+	this.name = null;
+	
+	this.setId = setId;
+	function setId(id)
+	{
+		this.id = id;
+	}
+	
+	this.getId = getId;
+	function getId()
+	{
+		return this.id;
+	}
+	
+	this.setName = setName;
+	function setName(name)
+	{
+		this.name = name;
+	}
+	
+	this.getName = getName;
+	function getName()
+	{
+		return this.name;
+	}
+}
+
+function Tile()
+{
+	this.color = null;
+	this.number = null;
+	this.row = null;
+	this.column = null;
+	
+	this.setColor = setColor;
+	function setColor(color)
+	{
+		this.color = color;
+	}
+	
+	this.getColor = getColor;
+	function getColor()
+	{
+		return this.color;
+	}
+	
+	this.setNumber = setNumber;
+	function setNumber(number)
+	{
+		this.number = number;
+	}
+	
+	this.getNumber = getNumber;
+	function getNumber()
+	{
+		return this.number;
+	}
+	
+	this.setRow = setRow;
+	function setRow(row)
+	{
+		this.row = row;
+	}
+	
+	this.getRow = getRow;
+	function getRow()
+	{
+		return this.row;
+	}
+	
+	this.setColumn = setColumn;
+	function setColumn(column)
+	{
+		this.column = column;
+	}
+	
+	this.getColumn = getColumn;
+	function getColumn()
+	{
+		return this.column;
+	}
+}
+
+function Board()
+{
+	this.board = new Array(5);
+	for (var i=0; i < this.board.length; i++)
+	{
+		this.board[i] = new Array(8);
+	}
+	
+	this.getBoard = getBoard;
+	function getBoard()
+	{
+		return this.board;
+	}
+	
+	this.generate = generate;
+	function generate()
+	{
+		for(var i=0; i<this.board.length; i++)
+		{
+			for(var j=0; j<this.board[i].length; j++)
+			{
+				this.board[i][j] = new Tile();
+				this.board[i][j].setRow(i);
+				this.board[i][j].setColumn(j);
+				this.board[i][j].setColor(Math.floor((Math.random()*3)+1));
+				this.board[i][j].setNumber(Math.floor((Math.random()*10)+1));
+			}
+		}
+		return JSON.stringify(board);
+	}
+}
+
+function Round()
+{
+	this.id = null;
+	this.clients = null;
+	this.board = null;
+}
+
+function runTimer(time)
+{
+	redisClient.set('timer',time+1);
+	var timer = setInterval(function(){
+		redisClient.decr('timer', function(err, res)
+		{
+			if(res > 0)
+				io.sockets.emit('timer',res);
+			else
+			{
+				clearInterval(timer);
+				runTimer(20);
+			}
+		});
+	}, 1000);
+}
+
+function getSocketDetails(socket)
+{
+	var retVal;
+	redisClient.get(socket.id, function(err, res)
+    {
+	    retVal = res;
+    });
+    return retVal;
+}
