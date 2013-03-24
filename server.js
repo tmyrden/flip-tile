@@ -4,6 +4,7 @@ var http = require("http"),
     fs = require("fs");
     
 var board = new Board();
+board.generate();
 
 var clients = new Array();
 
@@ -26,12 +27,9 @@ var io = socketio.listen(server);
 
 io.on('connection', function (socket)
 {
-	clients[socket.id] = socket.id;
 	var newClient = new Client();
 	newClient.setId(socket.id);
-	console.log(newClient);
-	newClient.setName("Thomas");
-	console.log(newClient);
+	clients[socket.id] = newClient;
     socket.on('message', function(msg)
     {
         console.log("Message Received: ", msg);
@@ -43,12 +41,30 @@ io.on('connection', function (socket)
 	    clients[this.id] = null;
 	    console.log(clients);
     });
+    
+    socket.on('tileShowRequest', function(coords)
+    {
+	    var rowCol = JSON.parse(coords);
+	    var reqTile = board.getTile(rowCol['row'], rowCol['column']);
+	    socket.broadcast.emit('tilePeek',reqTile.getBroadcastJSON());
+	    socket.emit('tileShow',reqTile.getSocketJSON());
+    });
+    
+    socket.on('tileHideRequest', function(coords)
+    {
+	    var rowCol = JSON.parse(coords);
+	    var reqTile = board.getTile(rowCol['row'], rowCol['column']);
+	    socket.broadcast.emit('tileHide',reqTile.getBroadcastJSON());
+	    socket.emit('tileHide',reqTile.getSocketJSON());
+    });
+    
 });
 
 function Client()
 {
 	this.id = null;
 	this.name = null;
+	this.tiles = null;
 	
 	this.setId = setId;
 	function setId(id)
@@ -72,6 +88,18 @@ function Client()
 	function getName()
 	{
 		return this.name;
+	}
+	
+	this.setTiles = setTiles;
+	function setTiles(tiles)
+	{
+		this.tiles = tiles;
+	}
+	
+	this.getTiles = getTiles;
+	function getTiles()
+	{
+		return this.tiles;
 	}
 }
 
@@ -129,6 +157,18 @@ function Tile()
 	{
 		return this.column;
 	}
+	
+	this.getBroadcastJSON = getBroadcastJSON;
+	function getBroadcastJSON()
+	{
+		return "Broadcast JSON";
+	}
+	
+	this.getSocketJSON = getSocketJSON;
+	function getSocketJSON()
+	{
+		return "Socket JSON";
+	}
 }
 
 function Board()
@@ -161,6 +201,12 @@ function Board()
 		}
 		return JSON.stringify(board);
 	}
+	
+	this.getTile = getTile;
+	function getTile(row, column)
+	{
+		return this.board[row][column];
+	}
 }
 
 function Round()
@@ -168,6 +214,30 @@ function Round()
 	this.id = null;
 	this.clients = null;
 	this.board = null;
+	
+	this.setId = setId;
+	function setId(id)
+	{
+		this.id = id;
+	}
+	
+	this.getId = getId;
+	function getId()
+	{
+		return this.id;
+	}
+	
+	this.setClients = setClients;
+	function setClients(clients)
+	{
+		this.clients = clients;
+	}
+	
+	this.getClients = getClients;
+	function getClients()
+	{
+		return this.clients;
+	}
 }
 
 function runTimer(time)
@@ -185,14 +255,4 @@ function runTimer(time)
 			}
 		});
 	}, 1000);
-}
-
-function getSocketDetails(socket)
-{
-	var retVal;
-	redisClient.get(socket.id, function(err, res)
-    {
-	    retVal = res;
-    });
-    return retVal;
 }
