@@ -398,18 +398,18 @@ function rebuildGame()
 			console.log('FOR EACH CLIENT');
 			if(clients[client] != null)
 			{
-				newArray[client] = client;
+				newArray[client] = clients[client];
 				console.log('ADD TO NEW ARRAY');
-				createClient(client);
+				createClient(clients[client]);
 				console.log('GENERATE THE CLIENT');
-				setTiles(client, generateClientTiles());
+				setTiles(clients[client], generateClientTiles());
 				console.log('SET THEIR TILES');
 				for (var i=0; i<40; i++)
 				{
 					console.log('LOOPING TO SEND TILES');
-					getTileState(i, client);
+					getTileState(i, clients[client]);
 				}
-				redisClient.keys(client+":tile*", function (err, keys)
+				redisClient.keys(clients[client]+":tile*", function (err, keys)
 				{
 					keys.forEach(function(key)
 					{
