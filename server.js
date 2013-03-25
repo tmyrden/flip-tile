@@ -201,17 +201,11 @@ function setTiles(socketId, tiles)
 	console.log(tiles);
 	for(var i=1; i<=tiles.length; i++)
 	{
+		console.log('Setting tiles');
 		if (i<tiles.length)
 			redisClient.set(socketId+':tile'+i, tiles[i-1]);
 		else
 			return redisClient.set(socketId+':tile'+i, tiles[i-1]);	
-	}
-	for(var i=1; i<=tiles.length; i++)
-	{
-		redisClient.get(socketId+':tile'+i, function(err, res)
-		{
-			console.log(res);
-		});
 	}
 	 
 }
