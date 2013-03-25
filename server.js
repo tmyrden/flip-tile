@@ -418,7 +418,7 @@ function rebuildGame()
 							redisClient.get(res+':tileValue', function(err, res)
 							{
 								//console.log(key+': '+res);
-								io.sockets.socket(client).emit('tile','{ "tileId": "'+key.substr(21,5)+'", "value": "'+res+'" }');
+								io.sockets.socket(clients[client]).emit('tile','{ "tileId": "'+key.substr(21,5)+'", "value": "'+res+'" }');
 							});
 						});
 					});
