@@ -7,12 +7,14 @@ var clients = new Array();
 
 var currentTime;
 
-var redisClient = redis.createClient(6379, 'nodejitsudb6390461707.redis.irstack.com', { 'maxReconnectionAttempts': 10});
+/*var redisClient = redis.createClient(6379, 'nodejitsudb6390461707.redis.irstack.com', { 'maxReconnectionAttempts': 10});
 redisClient.auth("nodejitsudb6390461707.redis.irstack.com:f327cfe980c971946e80b8e975fbebb4", function(err) {
   if (err) {
     throw err;
   }
-});
+});*/
+
+var redisClient = redis.createClient(6379, 'localhost');
 
 
 var server = http.createServer(function(req, res) {
@@ -25,7 +27,7 @@ var io = socketio.listen(server);
 var mainTileArray = randomTileArray();
 
 redisClient.on('ready', function () {
-	runTimer(20);
+	runTimer(30);
 	redisClient.flushall( function (didSucceed) {
         console.log(didSucceed); // true
         for (var i=0; i < 40; i++)
@@ -72,7 +74,7 @@ redisClient.on('ready', function () {
 			    	console.log('tileShow: '+tileId);
 			    	redisClient.get(socket.id+':currentTile', function(err, res)		// Get the current user's tile
 			    	{
-			    		if(res == 'null')												// If the current user has no tile, else1
+			    		if(res == 'null' || res == null)												// If the current user has no tile, else1
 			    		{
 					    	redisClient.get(tileId+':tileOwner', function(err, res)		// Get the owner of the tile the user wants
 					    	{
@@ -95,16 +97,26 @@ redisClient.on('ready', function () {
 							    		tileShow(socket.id, tileId)
 							    		for(var i=1; i<5; i++)
 							    		{
+							    			console.log('Enters loop');
 								    		redisClient.get(socket.id+':tile'+i, function(err, res)	// If the tile is one of the user's
 								    		{
+								    			console.log('Redis works looking for '+socket.id+':tile');
+								    			console.log('Error: '+err);
+								    			console.log('Apparently '+tileId+' is not '+res);
 									    		if(tileId == res)
 									    		{
+									    			console.log('If succeeds');
 									    			redisClient.get(tileId+':tileValue', function(err, res)
 									    			{
+									    				console.log('Redis works again');
 										    			io.sockets.emit('tileTaken', '{ "tileId": "'+tileId+'", "value": "'+res+'" }');	// Tell everyone it's taken
 										    			setCurrentTile(socket.id, 'null');		// Set user's tile to null
 										    			takeTile(tileId);						// Take the tile
-										    			redisClient.incrby(socket.id+':score', 100+parseInt(currentTime*10/1000));
+										    			redisClient.incrby(socket.id+':score', 100+parseInt(currentTime*10/1000), function(err, res)
+										    			{
+											    			console.log(err);
+											    			console.log(res);
+										    			});
 										    			testScoring(socket.id);
 									    			});
 									    			
@@ -117,7 +129,7 @@ redisClient.on('ready', function () {
 				    	}
 				    	else
 				    	{
-				    		console.log('You already have a tile!');					// else1: tell the user they already have a tile
+				    		console.log('You already have a tile: ' + res);				// else1: tell the user they already have a tile
 				    	}
 			    	});
 		    	}
@@ -174,7 +186,7 @@ function createClient(socketId)
 	redisClient.set(socketId+':tile3', 'null') &&
 	redisClient.set(socketId+':tile4', 'null') &&
 	redisClient.set(socketId+':currentTile', 'null') &&
-	redisClient.set(socketId+':score', 0) && (clients[socketId] = socketId);
+	redisClient.set(socketId+':score', 0) && (clients[socketId] = socketId) && console.log('TEST');;
 }
 
 function setClientName(socketId, name)
@@ -184,12 +196,22 @@ function setClientName(socketId, name)
 
 function setTiles(socketId, tiles)
 {
+	console.log('Giving user their tiles');
+	console.log(socketId+':tiles');
+	console.log(tiles);
 	for(var i=1; i<=tiles.length; i++)
 	{
 		if (i<tiles.length)
 			redisClient.set(socketId+':tile'+i, tiles[i-1]);
 		else
 			return redisClient.set(socketId+':tile'+i, tiles[i-1]);	
+	}
+	for(var i=1; i<=tiles.length; i++)
+	{
+		redisClient.get(socketId+':tile'+i, function(err, res)
+		{
+			console.log(res);
+		});
 	}
 	 
 }
@@ -221,6 +243,7 @@ function cleanseCurrentTile(socketId)
 
 function generateClientTiles()
 {
+	console.log('Generating tiles');
 	return [Math.floor(Math.random()*40), Math.floor(Math.random()*40), Math.floor(Math.random()*40), Math.floor(Math.random()*40)];
 }
 
@@ -248,6 +271,7 @@ function createTile(tileId)
 
 function setTileColor(tileId, color)
 {
+	console.log('Setting color of '+tileId);
 	return redisClient.set(tileId+':tileColor', color);
 }
 
@@ -263,6 +287,7 @@ function rentTile(tileId, socketId)
 
 function takeTile(tileId)
 {
+	console.log('Taking: '+tileId);
 	return redisClient.set(tileId+':tileTaken', 'true');
 }
 
@@ -354,24 +379,34 @@ function rebuildGame()
 	redisClient.flushall( function (didSucceed) {
         //console.log(didSucceed); // true
         io.sockets.emit('reset', '');
-        runTimer(20);
+        console.log('SENDING RESET COMMAND');
+        runTimer(30);
+        console.log('RESTARTING TIMER');
         mainTileArray = randomTileArray();
+        console.log('GENERATING ARRAY');
         for (var i=0; i < 40; i++)
 		{
+			console.log('LOOPING TO SET BOARD TILES');
 			createTile(i);
 			setTileColor(i, mainTileArray[i].substr(0,1));
 			setTileValue(i, mainTileArray[i]);
 		}
 		var newArray = new Array();
+		console.log('CREATE NEW ARRAY');
 		for(var client in clients)
 		{
+			console.log('FOR EACH CLIENT');
 			if(clients[client] != null)
 			{
 				newArray[client] = client;
+				console.log('ADD TO NEW ARRAY');
 				createClient(client);
+				console.log('GENERATE THE CLIENT');
 				setTiles(client, generateClientTiles());
+				console.log('SET THEIR TILES');
 				for (var i=0; i<40; i++)
 				{
+					console.log('LOOPING TO SEND TILES');
 					getTileState(i, client);
 				}
 				redisClient.keys(client+":tile*", function (err, keys)

@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            $(function(){
+                var iosocket = io.connect();
+                
+                iosocket.on('connect', function () {
+	                console.log('CONNECTED');
+                    iosocket.on('disconnect', function() {
+                        ;
+                    });
+                    iosocket.on('clientList', function(data) {
+                        console.log(data);
+                    });
+                    iosocket.on('timer', function(data) {
+                        console.log('Timer: '+data);
+                    });
+                    iosocket.on('tile', function(data) {
+                        console.log('Tile: '+data);
+                    });
+                });
+                
+                $('body').live('click', function()
+                {
+	                //iosocket.emit('setName', 'Fred');
+                });
+                
+                $('div').live('click', function()
+                {
+	               	iosocket.emit('requestTile', $(this).attr('id'));
+                });
+                
+                $(document).ready(function(){
+	               
+	               for(var i=0; i<40; i++)
+	               {
+		               $('body').append('<div id="'+i+'">'+i+'</div>');
+	               }
+	                
+                });
+                
+             });
+        </script>
+    </head>
+    <body>
+    </body>
+</html>
