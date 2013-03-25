@@ -393,15 +393,16 @@ function rebuildGame()
 		}
 		var newArray = new Array();
 		console.log('CREATE NEW ARRAY');
+		console.log(clients);
 		for(var client in clients)
 		{
 			console.log('FOR EACH CLIENT');
 			if(clients[client] != null)
 			{
 				newArray[client] = clients[client];
-				console.log('ADD TO NEW ARRAY');
+				console.log('ADD TO NEW ARRAY: '+clients[client]);
 				createClient(clients[client]);
-				console.log('GENERATE THE CLIENT');
+				console.log('GENERATE THE CLIENT: '+clients[client]);
 				setTiles(clients[client], generateClientTiles());
 				console.log('SET THEIR TILES');
 				for (var i=0; i<40; i++)
