@@ -2,13 +2,14 @@
     <head>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
-        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600,800' rel='stylesheet' type='text/css'>
         <style>
         	body, html
         	{
 	        	padding: 0;
 	        	margin: 0;
-	        	font-family: 'Open Sans', sans-serif;
+        	}
+        	body
+        	{
 	        	background: #2fb2ef; /* Old browsers */
 				background: -moz-radial-gradient(center, ellipse cover, #2fb2ef 0%, #090b7a 100%); /* FF3.6+ */
 				background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#2fb2ef), color-stop(100%,#090b7a)); /* Chrome,Safari4+ */
@@ -17,67 +18,143 @@
 				background: -ms-radial-gradient(center, ellipse cover, #2fb2ef 0%,#090b7a 100%); /* IE10+ */
 				background: radial-gradient(ellipse at center, #2fb2ef 0%,#090b7a 100%); /* W3C */
 				filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#2fb2ef', endColorstr='#090b7a',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+
         	}
-        	span.timer
+        	div#page_container
         	{
-	        	font-size: 40px;
+	        	width: 1200px;
+	        	margin: 0 auto;
+	        	background: ;
+	        	position: relative;
         	}
-        	div#timer_container
+        	div#timer
         	{
-	        	width: 250px;
-	        	height: 100px;
-	        	background: silver;
+        		margin: 20px;
+        		margin-bottom: 10px;
+	        	background: #0f0;
+	        	height: 110px;
+	        	width: 260px;
+	        	text-align: center;
+	        	-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				font-size: 24px;
+        	}
+        	div#timer_time
+        	{
+	        	font-size: 54px;
+	        	
+        	}
+        	div#scoreboard
+        	{
+        		margin: 10px 20px;
+	        	background: #00f;
+	        	height: 110px;
+	        	width: 260px;
+	        	text-align: center;
+	        	-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				font-size: 24px;
+        	}
+        	div#scoreboard div#score
+        	{
+	        	font-size: 54px;
+        	}
+        	div#leaderboard
+        	{
+	        	margin: 10px 20px;
+	        	background: grey;
+	        	height: 300px;
+	        	width: 260px;
+	        	text-align: center;
+	        	-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				font-size: 24px;
+				display:none;
+        	}
+        	div#user_tile_container
+        	{
+        		margin: 10px 20px;
+	        	background: grey;
+	        	height: 300px;
+	        	width: 260px;
+	        	text-align: center;
+	        	-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				font-size: 24px;
+        	}
+        	div#user_tile_container div#tiles
+        	{
+	        	margin: 18px 0px 0px 18px;
+        	}
+        	div#left_column
+        	{
 	        	position: absolute;
-	        	top: 10px;
-	        	left: 25px;
-	        	border-radius: 20px;
-	        	text-align: center;
-	        	font-size: 24px;
-	        	box-shadow: 0 0 20px black;
         	}
-        	div#userTiles
+        	div#tile_container
         	{
-	        	position:absolute;
-	        	width: 100px;
-	        	top: 150px;
-	        	margin-left: 105px;
+	        	position: relative;
+	        	/*border-spacing: 20px;
+	        	display: table;*/
+	        	width: 900px;
+	        	left: 300px;
+	        	background: ;
         	}
-        	div#userTiles .tile
+        	div.tile
         	{
-	        	width: 80px;
-	        	height: 80px;
-	        	margin: 1% 1%;
-	        	display: block !important;
-        	}
-        	.tile
-        	{
-        		color: black;
-	        	width: 80px;
-	        	height: 80px;
-	        	background: #ccc;
-	        	border: 4px solid white;
-	        	border-radius: 5px;
-	        	padding: 0px;
-	        	font-size: 40px;
-	        	margin: 1% 1%;
-	        	display: inline-block;
-	        	text-align: center;
-	        	box-shadow:0px 0px 10px black;
-	        	cursor: pointer;
-        	}
-        	#container
-        	{
-	        	width: 880px;
-	        	padding: 0;
-	        	margin-left: 300px;
-	        	height: 520px;
-	        	background: none;
-	        	-webkit-touch-callout: none;
+	        	background: white;
+	        	width: 84px;
+	        	height: 90px;
+	        	float: left;
+	        	/*display: table-cell;*/
+	        	margin: 10px;
+	        	-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				border: 4px solid grey;
+				font-size: 72px;
+				text-align: center;
+				-webkit-touch-callout: none;
 				-webkit-user-select: none;
 				-khtml-user-select: none;
 				-moz-user-select: none;
 				-ms-user-select: none;
 				user-select: none;
+        	}
+        	div.tile.Y
+        	{
+	        	background: #ff0;
+        	}
+        	div.tile.B
+        	{
+	        	background: #00f;
+        	}
+        	div.tile.R
+        	{
+	        	background: #f00;
+        	}
+        	div.tile.G
+        	{
+	        	background: #0f0;
+        	}
+        	div.tile.Y.taken
+        	{
+	        	background: #880;
+        	}
+        	div.tile.B.taken
+        	{
+	        	background: #008;
+        	}
+        	div.tile.R.taken
+        	{
+	        	background: #800;
+        	}
+        	div.tile.G.taken
+        	{
+	        	background: #080;
         	}
         	div#overlay
         	{
@@ -172,201 +249,196 @@
         <script>
             $(function(){
                 var iosocket = io.connect();
-                var takenTiles = new Array();
+                var currentTime = -1;
+                var inPlay = false;
+                var leaderBoard = new Array();
+                var leaderBoardCount = 1;
+                var userName = '';
+                
+                function sortLeaderboard()
+                {
+                	console.log(leaderBoard);
+                	leaderBoard.sort(function(a,b){
+					    return b['score'] - a['score'];
+					});
+					$('table#leaderboard').append('<tr><td>Name</td><td>Score</td></tr>');
+
+	                for(var i in leaderBoard)
+	                {
+		                $('table#leaderboard').append('<tr><td>'+leaderBoard[i]['userName']+'</td><td>'+leaderBoard[i]['score']+'</td></tr>');
+	                }
+                }
                 
                 iosocket.on('connect', function () {
-                    ;
-     
+	                console.log('CONNECTED');
                     iosocket.on('disconnect', function() {
                         ;
                     });
-                    iosocket.on('timer', function(value) {
-	                    $('span.timer').text(value);
-	                    if(parseInt(value) > 20)
-	                    {
-		                    $('span.timer').css('color','green');
-		                    $('div#userTiles').css('display','none');
-	                    }
-	                    else if(parseInt(value) < 6 && parseInt(value) > 0)
-	                    {
-		                    $('span.timer').css('color','red');
-		                    $('div#userTiles').css('display','block');
-	                    }
-	                    else if(parseInt(value) <= 0)
-	                    {
-		                    $('div#userTiles').css('display','none');
-	                    }
-	                    else
-	                    {
-		                    $('span.timer').css('color','black');
-		                    $('div#userTiles').css('display','block');
-	                    }
+                    iosocket.on('clientList', function(data) {
+                        console.log(data);
                     });
-                    iosocket.on('tileShow', function(response) {
-	                    console.log("tileShow: "+response);
-	                    var resArray = JSON.parse(response);
-	                    if(resArray['value'].substr(0,1) == 'R')
-	                    	$('div#'+resArray['tileId']).css('background','red');
-	                    else if(resArray['value'].substr(0,1) == 'G')
-	                    	$('div#'+resArray['tileId']).css('background','#0f0');
-	                    else if(resArray['value'].substr(0,1) == 'B')
-	                    	$('div#'+resArray['tileId']).css('background','blue');
-	                    else if(resArray['value'].substr(0,1) == 'Y')
-	                    	$('div#'+resArray['tileId']).css('background','yellow');
-	                    $('div#'+resArray['tileId']).css('border','4px solid white');
-	                    $('div#'+resArray['tileId']).removeClass('hidden');
-	                    $('div#'+resArray['tileId']).addClass('shown');
-	                    $('div#'+resArray['tileId']).removeClass('peeked');
-	                    $('div#'+resArray['tileId']).text(resArray['value'].substr(1,1));
+                    iosocket.on('timer', function(data) {
+                        console.log('Timer: '+data);
+                        if(data >= 0)
+                        {
+                        	$('div#timer_time').text(data);
+                        	$('div#user_tile_container').css('display','block');
+                        	$('div#leaderboard').css('display','none');
+                        }
+                        else
+                        {
+	                        $('div#user_tile_container').css('display','none');
+                        	$('div#leaderboard').css('display','block');
+                        }
+                        if(data == 0 && inPlay == true)
+                        {		     
+                        	iosocket.emit('leaderboardValue', '{ "userName":"'+userName+'", "score":"'+parseInt($('div#score').text())+'" }');
+                        }
+                        currentTime = data;
+                        if(data == -2)
+                        {
+	                        sortLeaderboard();
+                        }
                     });
-                    iosocket.on('tilePeek', function(response) {
-	                    console.log("tilePeek: "+response);
-	                    var resArray = JSON.parse(response);
-	                    if(resArray['value'] == 'R')
-	                    	$('div#'+resArray['tileId']).css('background','#f88');
-	                    else if(resArray['value'] == 'G')
-	                    	$('div#'+resArray['tileId']).css('background','#8f8');
-	                    else if(resArray['value'] == 'B')
-	                    	$('div#'+resArray['tileId']).css('background','#88f');
-	                    else if(resArray['value'] == 'Y')
-	                    	$('div#'+resArray['tileId']).css('background','#ff8');
-	                    $('div#'+resArray['tileId']).css('border','4px solid white');
-	                    $('div#'+resArray['tileId']).removeClass('hidden');
-	                    $('div#'+resArray['tileId']).removeClass('shown');
-	                    $('div#'+resArray['tileId']).addClass('peeked');
-	                    $('div#'+resArray['tileId']).text("_");
-
+                    iosocket.on('tile', function(data) {
+                        console.log('Tile: '+data);
+                        $('div#user_tile_container div#tiles').append('<div class="tile '+data.substr(0,1)+'" id="'+data+'">'+data.substr(1,1)+'</div>');
+                        inPlay = true;
                     });
-                    iosocket.on('tileHide', function(response) {
-	                    console.log("tileHide: "+response);
-	                    $('div#'+response).css('background','#ccc');
-	                    $('div#'+response).addClass('hidden');
-	                    $('div#'+response).removeClass('shown');
-	                    $('div#'+response).removeClass('peeked');
-	                    $('div#'+response).text('_');
+                    iosocket.on('tileShow', function(data) {
+                        console.log('Tile Show: '+data);
+                        var tile = JSON.parse(data);
+                        if(tile['value'].substr(0,1) == 'R')
+	                    	$('div#'+tile['tileId']).css('background','#f00');
+	                    else if(tile['value'].substr(0,1) == 'G')
+	                    	$('div#'+tile['tileId']).css('background','#0f0');
+	                    else if(tile['value'].substr(0,1) == 'B')
+	                    	$('div#'+tile['tileId']).css('background','#00f');
+	                    else if(tile['value'].substr(0,1) == 'Y')
+	                    	$('div#'+tile['tileId']).css('background','#ff0');
+                        $('div#'+tile['tileId']).text(tile['value'].substr(1,1));
                     });
-                    iosocket.on('tile', function(response) {
-                    	var resArray = JSON.parse(response);
-                    	$('div#'+resArray['tileId']).remove();
-                    	$('div#userTiles').append('<div id="'+resArray['tileId']+'" class="hidden tile '+resArray['value']+'">'+resArray['value'].substr(1,1)+'</div>');
-	                    if(resArray['value'].substr(0,1) == 'R')
-	                    	$('div#'+resArray['tileId']).css('background','#f00');
-	                    else if(resArray['value'].substr(0,1) == 'G')
-	                    	$('div#'+resArray['tileId']).css('background','#0f0');
-	                    else if(resArray['value'].substr(0,1) == 'B')
-	                    	$('div#'+resArray['tileId']).css('background','#00f');
-	                    else if(resArray['value'].substr(0,1) == 'Y')
-	                    	$('div#'+resArray['tileId']).css('background','#ff0');
-	                    $('div#'+resArray['tileId']).css('border','4px solid white');
-	                    takenTiles.forEach(function(key)
-	                    {
-	                    	if(key.substr(0,1) == 'R')
-		                    	$('div.'+key).css('background','#800');
-		                    else if(key.substr(0,1) == 'G')
-		                    	$('div.'+key).css('background','#080');
-		                    else if(key.substr(0,1) == 'B')
-		                    	$('div.'+key).css('background','#008');
-		                    else if(key.substr(0,1) == 'Y')
-		                    	$('div.'+key).css('background','#880');
-		                    $('div.'+key).css('border','4px solid black');
-	                    });
-                    	
-	                    console.log("tile: "+response);
+                    iosocket.on('tileHide', function(data) {
+                        console.log('Tile Hide: '+data);
+                        $('div#'+data).css('background','white');
+                        $('div#'+data).text('');
                     });
-                    iosocket.on('tileTaken', function(response) {
-	                    console.log("tile: "+response);
-	                    var resArray = JSON.parse(response);
-	                    if(resArray['value'].substr(0,1) == 'R')
-	                    	$('div#'+resArray['tileId']).css('background','#800');
-	                    else if(resArray['value'].substr(0,1) == 'G')
-	                    	$('div#'+resArray['tileId']).css('background','#080');
-	                    else if(resArray['value'].substr(0,1) == 'B')
-	                    	$('div#'+resArray['tileId']).css('background','#008');
-	                    else if(resArray['value'].substr(0,1) == 'Y')
-	                    	$('div#'+resArray['tileId']).css('background','#880');
-	                    $('div#'+resArray['tileId']).css('border','4px solid black');
-	                    $('div#'+resArray['tileId']).removeClass('hidden');
-	                    $('div#'+resArray['tileId']).removeClass('shown');
-	                    $('div#'+resArray['tileId']).addClass('peeked');
-	                    $('div#'+resArray['tileId']).text(resArray['value'].substr(1,1));
-	                    console.log('div.'+resArray['value']);
-	                    takenTiles.push(resArray['value']);
-	                    takenTiles.forEach(function(key)
-	                    {
-	                    	if(key.substr(0,1) == 'R')
-		                    	$('div.'+key).css('background','#800');
-		                    else if(key.substr(0,1) == 'G')
-		                    	$('div.'+key).css('background','#080');
-		                    else if(key.substr(0,1) == 'B')
-		                    	$('div.'+key).css('background','#008');
-		                    else if(key.substr(0,1) == 'Y')
-		                    	$('div.'+key).css('background','#880');
-		                    $('div.'+key).css('border','4px solid black');
-	                    });
+                    iosocket.on('tilePeek', function(data) {
+                        console.log('Tile Peek: '+data);
+                        var tile = JSON.parse(data);
+                        if(tile['value'] == 'R')
+	                    	$('div#'+tile['tileId']).css('background','#f88');
+	                    else if(tile['value'] == 'G')
+	                    	$('div#'+tile['tileId']).css('background','#8f8');
+	                    else if(tile['value'] == 'B')
+	                    	$('div#'+tile['tileId']).css('background','#88f');
+	                    else if(tile['value'] == 'Y')
+	                    	$('div#'+tile['tileId']).css('background','#ff8');
+                        $('div#'+tile['tileId']).text('');
                     });
-                    
-                    iosocket.on('reset', function(response) {
-	                   $('div.tile').css('border','4px solid white');
-	                   takenTiles = new Array();
+                    iosocket.on('tileTaken', function(data) {
+                        console.log('Tile Taken: '+data);
+                        var tile = JSON.parse(data);
+                        if(tile['value'].substr(0,1) == 'R')
+	                    	$('div#'+tile['tileId']).css('background','#800');
+	                    else if(tile['value'].substr(0,1) == 'G')
+	                    	$('div#'+tile['tileId']).css('background','#080');
+	                    else if(tile['value'].substr(0,1) == 'B')
+	                    	$('div#'+tile['tileId']).css('background','#008');
+	                    else if(tile['value'].substr(0,1) == 'Y')
+	                    	$('div#'+tile['tileId']).css('background','#880');
+                        $('div#'+tile['tileId']).text(tile['value'].substr(1,1));
+                        $('div#tiles div#'+tile['value']).addClass('taken');
                     });
-                    
-                    iosocket.on('score', function(response) {
-	                   $('span#score').text(response);
+                    iosocket.on('score', function(data) {
+                        console.log('Score: '+data);
+                        $('div#scoreboard div#score').text(data);
+                    });
+                    iosocket.on('reset', function() {
+                        console.log('RESET');
+                        $('div#user_tile_container div#tiles').text('');
+                        $('div#user_tile_container div#tiles').removeClass('taken');
+                        $('div#scoreboard div#score').text(0);
+                        $('div.tile').css('color','black');
+                        $('div#tile_container div.tile').text('');
+                        $('div#tile_container div.tile').css('background','white');
+                        $('table#leaderboard').text('');
+                        leaderBoard = new Array();
+                        leaderBoardCount = 0;
+                    });
+                    iosocket.on('leaderboardValue', function(data) {
+                        console.log('LEADERBOARD: '+data);
+                        leaderBoard[leaderBoardCount] = JSON.parse(data);
+                        leaderBoardCount++;
                     });
                 });
                 
+                $('body').live('click', function()
+                {
+	                //iosocket.emit('setName', 'Fred');
+                });
+                
+                $('div').live('click', function()
+                {
+                	if(currentTime > 0 && inPlay)
+	               		iosocket.emit('requestTile', $(this).attr('id'));
+                });
+                
+                $('a#go').live('click', function()
+                {
+	               $('div#overlay').css('display','none');
+	               iosocket.emit('setName', $('input#username').val());
+	               userName = $('input#username').val();
+                });
                 
                 $(document).ready(function(){
+	               
 	               for(var i=0; i<40; i++)
 	               {
-		               $('div#container').append('<div id="'+i+'" class="hidden tile">'+i+'</div>');
+		               //if(i == 0 || i == 8 || i == 16 || i == 24 || i == 32)
+		               		//$('div#tile_container').append('<div style="display: table-row">');
+		               $('div#tile_container').append('<div class="tile" id="'+i+'"> </div>');
+		                //if(i == 7 || i == 15 || i == 23 || i == 31 || i == 39)
+		                	//$('div#tile_container').append('</div>');
+		                
 	               }
+	                
                 });
                 
-                $('div.tile').live('click', function()
-                {
-                	if($('div#userTiles').text() != "" && parseInt($('span.timer').text()) < 21 && parseInt($('span.timer').text()) > 0)
-                	{
-		                console.log($(this).attr('id'));
-		                if($(this).hasClass('hidden'))
-		                {
-		                	console.log('test');
-		                	iosocket.emit('tileShowRequest', $(this).attr('id'));
-		                }
-		                else if($(this).hasClass('shown'))
-		                {
-			                iosocket.emit('tileHideRequest', $(this).attr('id'));
-		                }
-	                }
-                })
-                
-                $('a#next').live('click', function()
-                {
-	               $('div#overlay').css('display','none'); 
-                });
-            });
-
+             });
         </script>
     </head>
     <body>
-    	<div id="userTiles"></div>
-    	<div id="timer_container">
-    		TIME REMAINING<br />
-    		<span class="show timer"></span>
-    	</div>
-        <div id="container"></div>
-        <span id="score">0</span>
-        
-        <div id="overlay">
+    	<div id="page_container">
+    		<div id="left_column">
+		    	<div id="timer">
+			    	TIME REMAINING
+			    	<div id="timer_time">0</div>
+		    	</div>
+		    	<div id="scoreboard">
+			    	SCORE
+			    	<div id="score">0</div>
+		    	</div>
+		    	<div id="user_tile_container">
+			    	YOUR TILES
+			    	<div id="tiles">YOU WILL BE<br /> DEALT TILES AT<br /> THE START OF THE NEXT ROUND</div>
+		    	</div>
+		    	<div id="leaderboard">
+			    	LEADERBOARD
+			    	<table id="leaderboard"></table>
+		    	</div>
+    		</div>
+	    	<div id="tile_container"></div>
+	    	<div id="overlay">
 	        <div id="overlay-box">
 	        	<div id="logo"><div id="line"></div><div id="text">FLIP<br />TILE</div></div>
 	        	<br /><br />Hey there! Welcome to Flip Tile.<br /><br /> Let's get started by getting your name:<br /><br />
 	        	<input type="text" id="username" />
 	        	<div id="buttons">
-	        		<a href="#skip" id="skip">Skip</a>
-	        		<a href="#next" id="next">Next</a>
+	        		<a href="#go" id="go">Let's Go</a>
 	        	</div>
 	        </div>
         </div>
+    	</div>
     </body>
 </html>

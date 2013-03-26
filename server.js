@@ -2,17 +2,8 @@ var http = require("http"),
     socketio = require("socket.io"),
     redis = require("redis"),
     fs = require("fs");
-
 var clients = new Array();
-
 var currentTime;
-
-/*var redisClient = redis.createClient(6379, 'nodejitsudb6390461707.redis.irstack.com', { 'maxReconnectionAttempts': 10});
-redisClient.auth("nodejitsudb6390461707.redis.irstack.com:f327cfe980c971946e80b8e975fbebb4", function(err) {
-  if (err) {
-    throw err;
-  }
-});*/
 
 var redisClient = redis.createClient(6379, 'localhost');
 
@@ -24,404 +15,282 @@ var server = http.createServer(function(req, res) {
 
 var io = socketio.listen(server);
 
-var mainTileArray = randomTileArray();
-
 redisClient.on('ready', function () {
-	runTimer(30);
 	redisClient.flushall( function (didSucceed) {
-        console.log(didSucceed); // true
-        for (var i=0; i < 40; i++)
-		{
-			createTile(i);
-			setTileColor(i, mainTileArray[i].substr(0,1));
-			//console.log(mainTileArray[i].substr(0,1));
-			setTileValue(i, mainTileArray[i]);
-			//console.log(mainTileArray[i].substr(1,1));
-		}
+        //console.log(didSucceed);
+        beginNewRound();
     });
 	
 
 	io.on('connection', function (socket)
 	{
-		createClient(socket.id);
-		for (var i=0; i < 40; i++)
+		console.log('NEW CONNECTION: '+socket.id);
+		addClientToList(socket.id);
+		
+		socket.on('disconnect', function()
 		{
-			getTileState(i, socket.id);
-		}
-	    socket.on('message', function(msg)
-	    {
-	        console.log("Message Received: ", msg);
-	        socket.broadcast.emit('message', msg);
-	    });
-	    
-	    socket.on('disconnect', function()
-	    {
-		    //clients[this.id] = null;
-		    //console.log(clients);
-		    deleteClient(this.id);
-		    cleanseCurrentTile(socket.id);
-	    });
-	    
-	    /**
-	    **	User wants to show a tile.
-	    **/
-	    socket.on('tileShowRequest', function(tileId)
-	    {
-	    	redisClient.get(tileId+':tileTaken', function(err, res)
-	    	{
-		    	if(res == 'false')
-		    	{
-			    	console.log('tileShow: '+tileId);
-			    	redisClient.get(socket.id+':currentTile', function(err, res)		// Get the current user's tile
-			    	{
-			    		if(res == 'null' || res == null)												// If the current user has no tile, else1
-			    		{
-					    	redisClient.get(tileId+':tileOwner', function(err, res)		// Get the owner of the tile the user wants
-					    	{
-						    	if (res == 'null')										// If the tile has no owner, else2
-						    	{
-							    	rentTile(tileId, socket.id);						// Take the tile
-						    	}
-						    	else
-						    	{
-							    	console.log('Tile already owned by: '+res);			// else2: Tell the user someone else owns the tile
-						    	}
-						    	redisClient.get(tileId+':tileOwner', function(err, res)	// Get the tile again
-						    	{
-							    	console.log('Tile now owned by: '+res);
-							    	if(socket.id == res)								// If the user now owns the tile
-							    	{
-							    		//socket.emit('tileShow', tileId);				// Show them the tile
-							    		setCurrentTile(socket.id, tileId);				// Assign it as their current tile
-							    		//socket.broadcast.emit('tilePeek', tileId);		// Give the other users a peek
-							    		tileShow(socket.id, tileId)
-							    		for(var i=1; i<5; i++)
-							    		{
-							    			console.log('Enters loop');
-								    		redisClient.get(socket.id+':tile'+i, function(err, res)	// If the tile is one of the user's
-								    		{
-								    			console.log('Redis works looking for '+socket.id+':tile');
-								    			console.log('Error: '+err);
-								    			console.log('Apparently '+tileId+' is not '+res);
-									    		if(tileId == res)
-									    		{
-									    			console.log('If succeeds');
-									    			redisClient.get(tileId+':tileValue', function(err, res)
-									    			{
-									    				console.log('Redis works again');
-										    			io.sockets.emit('tileTaken', '{ "tileId": "'+tileId+'", "value": "'+res+'" }');	// Tell everyone it's taken
-										    			setCurrentTile(socket.id, 'null');		// Set user's tile to null
-										    			takeTile(tileId);						// Take the tile
-										    			redisClient.incrby(socket.id+':score', 100+parseInt(currentTime*10/1000), function(err, res)
-										    			{
-											    			console.log(err);
-											    			console.log(res);
-										    			});
-										    			testScoring(socket.id);
-									    			});
-									    			
-									    		}
-								    		});
-							    		}
-							    	}	
-						    	});
-					    	});
-				    	}
-				    	else
-				    	{
-				    		console.log('You already have a tile: ' + res);				// else1: tell the user they already have a tile
-				    	}
-			    	});
-		    	}
-	    	});
-	    	
-	    });
-	    
-	    /**
-	    **	User wants to hide a tile
-	    **/
-	    socket.on('tileHideRequest', function(tileId)
-	    {
-	    	redisClient.get(tileId+':tileTaken', function(err, res)
-	    	{
-		    	if(res == 'false')
-		    	{
-				    console.log('You want to hide: '+tileId);
-			    	redisClient.get(tileId+':tileOwner', function(err, res)				// Get the tile's current owner
-			    	{
-				    	if (res == socket.id)											// If the user is the owner, else1
-				    	{
-					    	returnTile(tileId, socket.id);								// Return the tile
-					    	console.log('Server has released tile: '+tileId);
-				    	}
-				    	else															
-				    	{
-					    	console.log('Tile not owned by you, rather: '+res);			// else1: Tell them they can't return it
-				    	}
-				    	redisClient.get(tileId+':tileOwner', function(err, res)			// Get the tile again
-				    	{
-					    	console.log('Tile now owned by: '+res);
-					    	if(res != socket.id)										// If the tile is no longer the user's
-					    	{
-					    		socket.emit('tileHide', tileId);						// Hide to the user
-					    		socket.broadcast.emit('tileHide', tileId);				// Hide to everyone else
-					    		setCurrentTile(socket.id, 'null')						// Set user's current tile to null
-					    		console.log('Your current tile is now null');
-					    	}
-				    	});
-			    	});
-			    }
-			});
-	    });
-	    
-	});
-	
-});
-
-function createClient(socketId)
-{
-	return redisClient.set(socketId+':clientName', 'null') &&
-	redisClient.set(socketId+':tile1', 'null') &&
-	redisClient.set(socketId+':tile2', 'null') &&
-	redisClient.set(socketId+':tile3', 'null') &&
-	redisClient.set(socketId+':tile4', 'null') &&
-	redisClient.set(socketId+':currentTile', 'null') &&
-	redisClient.set(socketId+':score', 0) && (clients[socketId] = socketId) && console.log('TEST');;
-}
-
-function setClientName(socketId, name)
-{
-	return redisClient.set(socketId+':clientName', name);
-}
-
-function setTiles(socketId, tiles)
-{
-	console.log('Giving user their tiles');
-	console.log(socketId+':tiles');
-	console.log(tiles);
-	for(var i=1; i<=tiles.length; i++)
-	{
-		console.log('Setting tiles');
-		if (i<tiles.length)
-			redisClient.set(socketId+':tile'+i, tiles[i-1]);
-		else
-			return redisClient.set(socketId+':tile'+i, tiles[i-1]);	
-	}
-	 
-}
-
-function testScoring(socketId)
-{
-	return redisClient.get(socketId+':score', function(err, res)
-	{
-		console.log('Score: '+res);
-	});
-}
-
-function setCurrentTile(socketId, tileId)
-{
-	return redisClient.set(socketId+':currentTile', tileId);
-}
-
-function cleanseCurrentTile(socketId)
-{
-	return redisClient.get(socketId+':currentTile', function(err, res)
-	{
-		if (res != null)
+			removeClientFromList(socket.id);
+		});
+		
+		socket.on('leaderboardValue', function(data)
 		{
-			redisClient.set(res+':tileOwner', 'null');
-			io.sockets.emit('tileHide', res);
-		}
-	});
-}
-
-function generateClientTiles()
-{
-	console.log('Generating tiles');
-	return [Math.floor(Math.random()*40), Math.floor(Math.random()*40), Math.floor(Math.random()*40), Math.floor(Math.random()*40)];
-}
-
-function deleteClient(socketId)
-{
-	return redisClient.keys(socketId+"*", function (err, keys)
-	{
-		keys.forEach(function(key)
+			io.sockets.emit('leaderboardValue', data);
+		});
+		
+		socket.on('setName', function(data)
 		{
-			redisClient.del(key, function(err, num)
+			console.log('INCOMING NAME');
+			clients[socket.id]['name'] = data;
+		});
+		
+		socket.on('requestTile', function(data)
+		{
+			console.log('INCOMING TILE REQUEST: '+data);
+			redisClient.get(socket.id+':currentTile', function(err, res)
 			{
-				;
+				console.log('ERROR: '+err);
+				if(res == '')	// CHECKOUT
+				{
+					redisClient.get(data+':tileOwner', function (err, res)
+					{
+						if(res == '')
+						{
+							redisClient.set(socket.id+':currentTile', data, function(test, test2)
+							{
+								redisClient.set(data+':tileOwner', socket.id, function()
+								{
+									redisClient.get(data+':tileValue', function(err, res)
+									{
+										socket.emit('tileShow', '{ "tileId":"'+data+'", "value":"'+res+'" }');
+										socket.broadcast.emit('tilePeek', '{ "tileId":"'+data+'", "value":"'+res.substr(0,1)+'" }');
+										console.log('Took It');
+										console.log(test);
+										console.log(test2);
+									});
+								});
+							});
+							redisClient.get(data+':tileValue', function (err, res)
+							{
+								console.log('TAKEN TILE IS: '+res);
+								var tileValue = res;
+								for (var i=0; i<4; i++)
+								{
+									redisClient.get(socket.id+':tile'+(i+1), function(err, res)
+									{
+										console.log('I REPEAT, TAKEN TILE IS: '+tileValue);
+										console.log('YOUR TILE IS: '+res);
+										if(tileValue == res)
+										{
+											redisClient.set(data+':tileTaken', 'true', function()
+											{
+												console.log('TILE TAKEN: '+data);
+												redisClient.set(socket.id+':currentTile', '');
+												io.sockets.emit('tileTaken', '{ "tileId":"'+data+'", "value":"'+tileValue+'" }');
+												redisClient.incrby(socket.id+':score', 100+parseInt(currentTime/100), function()
+												{
+													redisClient.get(socket.id+':score', function(err, res)
+													{
+														socket.emit('score', res);
+													});
+												});
+											});
+										}
+									});
+								}
+							});
+						}
+					});
+				}
+				else if(res == data)	// RETURN
+				{
+					redisClient.get(data+':tileTaken', function (err, res)
+					{
+						if(res == 'false')
+						{
+							redisClient.set(socket.id+':currentTile', '', function(test, test2)
+							{
+								redisClient.set(data+':tileOwner', '', function()
+								{
+									io.sockets.emit('tileHide', data);
+									console.log('Returned It');
+									console.log(test);
+									console.log(test2);
+								});
+							});
+						}
+					});
+				}
+				else
+				{
+					console.log('ELSE CASE: '+res);
+				}
 			});
 		});
-	}) && (clients[socketId] = null);
+	});
+});
+
+
+function addClientToList(socketId)
+{
+	var newClient = new Array();
+	newClient['id'] = socketId;
+	newClient['tile1'] = null;
+	newClient['tile2'] = null;
+	newClient['tile3'] = null;
+	newClient['tile4'] = null;
+	newClient['name'] = null;
+	newClient['score'] = 0;
+	newClient['currentTile'] = '';
+	clients[socketId] = newClient;
+	console.log('ADDED TO CLIENT LIST: '+socketId);
 }
 
-function createTile(tileId)
+function addClientToRedis(client)
 {
-	return redisClient.set(tileId+':tileValue', 'null') &&
-	redisClient.set(tileId+':tileColor', 'null') &&
-	redisClient.set(tileId+':tileOwner', 'null') &&
-	redisClient.set(tileId+':tileTaken', 'false');
+	redisClient.set(client['id']+':name', client['name']);
+	redisClient.set(client['id']+':tile1', client['tile1']);
+	redisClient.set(client['id']+':tile2', client['tile2']);
+	redisClient.set(client['id']+':tile3', client['tile3']);
+	redisClient.set(client['id']+':tile4', client['tile4']);
+	redisClient.set(client['id']+':currentTile', client['currentTile']);
+	redisClient.set(client['id']+':score', client['score']);
 }
 
-function setTileColor(tileId, color)
+function removeClientFromList(socketId)
 {
-	console.log('Setting color of '+tileId);
-	return redisClient.set(tileId+':tileColor', color);
+	clients[socketId] = null;
+	console.log(clients);
 }
 
-function setTileValue(tileId, value)
+
+// USELESS FUNCTION
+function sendClientListToClient(socketId)
 {
-	return redisClient.set(tileId+':tileValue', value);
+	io.sockets.socket(socketId).emit('clientList', clients[socketId].toString());
 }
 
-function rentTile(tileId, socketId)
+function addTilesToRedis(tiles)
 {
-	return redisClient.set(tileId+':tileOwner', socketId);
-}
-
-function takeTile(tileId)
-{
-	console.log('Taking: '+tileId);
-	return redisClient.set(tileId+':tileTaken', 'true');
-}
-
-function returnTile(tileId, socketId)
-{
-	return redisClient.set(tileId+':tileOwner', 'null');
-}
-
-function getTileState(tileId, socketId)
-{
-	return redisClient.get(tileId+':tileTaken', function(err,res)
+	//console.log(tiles);
+	for(var i=0; i<tiles.length; i++)
 	{
-		if(res == 'false')
-		{
-			redisClient.get(tileId+':tileOwner', function(err,res)
-			{
-				if(res == 'null')
-					io.sockets.socket(socketId).emit('tileHide', tileId);
-				else if(res == socketId)
-					redisClient.get(tileId+':tileValue', function(err, res)
-					{
-						io.sockets.socket(socketId).emit('tileShow', '{ "tileId": "'+tileId+'", "value": "'+res+'" }');
-					});
-				else
-					redisClient.get(tileId+':tileValue', function(err, res)
-					{
-						io.sockets.socket(socketId).emit('tilePeek', '{ "tileId": "'+tileId+'", "value": "'+res.substr(0,1)+'" }');
-					});
-			});
-		}
-		else
-		{
-			redisClient.get(tileId+':tileValue', function(err, res)
-			{
-				io.sockets.socket(socketId).emit('tileTaken', '{ "tileId": "'+tileId+'", "value": "'+res+'" }');
-			});
-			
-		}
+		redisClient.set(i+':tileValue', tiles[i]);
+		redisClient.set(i+':tileOwner', '');
+		redisClient.set(i+':tileTaken', 'false');
+	}
+}
+
+function getTileValueFromRedis(tileId)
+{
+	redisClient.get(tileId+':tileValue', function(err,res)
+	{
+		console.log('TileValue: '+res);
 	});
 }
 
-function tileShow(socketId, tileId)
+function generateNewTiles()
 {
-	redisClient.get(tileId+':tileValue', function(err, res)
-	{
-		io.sockets.socket(socketId).emit('tileShow', '{ "tileId": "'+tileId+'", "value": "'+res+'" }');
-		io.sockets.socket(socketId).broadcast.emit('tilePeek', '{ "tileId": "'+tileId+'", "value": "'+res.substr(0,1)+'" }');
-	});
-}
-
-function randomTileArray()
-{
-	var tileArray = new Array(40);
-	var colorArray = new Array();
-	colorArray[0] = 'R';
-	colorArray[1] = 'G';
-	colorArray[2] = 'B';
-	colorArray[3] = 'Y';
+	var gTileArray = new Array();
+	var gColorArray = new Array();
+	gColorArray[0] = 'R';
+	gColorArray[1] = 'G';
+	gColorArray[2] = 'B';
+	gColorArray[3] = 'Y';
 	for(var i=0; i<40; i++)
 	{
-		var tileString = colorArray[Math.floor(i/10)];
+		var tileString = gColorArray[Math.floor(i/10)];
 		tileString += Math.floor(i%10);
-		tileArray[i] = tileString;
+		gTileArray[i] = tileString;
 	}
-	for(var j, x, i = tileArray.length; i; j = parseInt(Math.random() * i), x = tileArray[--i], tileArray[i] = tileArray[j], tileArray[j] = x);
-	return tileArray;
+	for(var j, x, i = gTileArray.length; i; j = parseInt(Math.random() * i), x = gTileArray[--i], gTileArray[i] = gTileArray[j], gTileArray[j] = x);
+	return gTileArray;
 }
+
+/*function emitLeaderBoard()
+{
+	/*redisClient.keys('*:score', function(err, keys)
+	{
+		for(var i in keys)
+		{
+			var index = i;
+			redisClient.get(keys[index], function (err, res)
+			{
+				var userScore = res;
+				console.log(keys[index].substr(0,21)+'name');
+				redisClient.get(keys[index].substr(0,21)+'name', function (err, res)
+				{
+					var userName = res;
+					io.sockets.emit('leaderboardValue', '{ "userName":"'+userName+'", "score":"'+userScore+'" }');
+					//console.log(userScores);
+				});
+			});
+		}
+	});
+	
+	redisClient.keys('*:score', function(err, keys)
+	{
+		for(var i=0; i<keys.length; i++)
+		{
+			redisClient.set(keys[i].substr(0,20)+':leaderboard', i, function()
+			{
+				redisClient.get(keys[i], function (err, res)
+				{
+					io.sockets.emit('leaderboardScore', '{ "id":"'+res+'", "score":"'+res+'" }');
+									
+				});
+				redisClient.get(keys[i].substr(0,21)+'name', function (err, res)
+				{
+					io.sockets.emit('leaderboardName', '{ "id":"'+res+'", "name":"'+res+'" }');
+					//console.log(userScores);
+				});
+			});
+		}
+	});
+	
+}*/
 
 function runTimer(time)
 {
 	currentTime = ((time+1)*1000);
-	var timer = setInterval(function()
-	{
+	var timer = setInterval(function(){
 		currentTime -= 50;
 		if(currentTime >= 0 && (currentTime/1000) == parseInt(currentTime/1000))
 		{
-			io.sockets.emit('timer', currentTime/1000);
+			io.sockets.emit('timer', (currentTime/1000)-10);
 		}
-		else if(currentTime < 0)
+		if(currentTime == 10000)
+		{
+			//emitLeaderBoard();
+		}
+		if(currentTime < 0)
 		{
 			clearInterval(timer);
-			rebuildGame();
+			beginNewRound();
 		}
-	},50);
+	}, 50);
 }
 
-function rebuildGame()
+function beginNewRound()
 {
 	redisClient.flushall( function (didSucceed) {
-        //console.log(didSucceed); // true
-        io.sockets.emit('reset', '');
-        console.log('SENDING RESET COMMAND');
-        runTimer(30);
-        console.log('RESTARTING TIMER');
-        mainTileArray = randomTileArray();
-        console.log('GENERATING ARRAY');
-        for (var i=0; i < 40; i++)
+		var newRoundTileArray = generateNewTiles();
+		addTilesToRedis(newRoundTileArray);
+		runTimer(30);
+		//console.log('Client list: '+clients);
+		io.sockets.emit('reset','');
+		for(var i in clients)
 		{
-			console.log('LOOPING TO SET BOARD TILES');
-			createTile(i);
-			setTileColor(i, mainTileArray[i].substr(0,1));
-			setTileValue(i, mainTileArray[i]);
-		}
-		var newArray = new Array();
-		console.log('CREATE NEW ARRAY');
-		console.log(clients);
-		for(var client in clients)
-		{
-			console.log('FOR EACH CLIENT');
-			if(clients[client] != null)
+			if (clients[i] != null && clients[i]['name'] != null)
 			{
-				newArray[client] = clients[client];
-				console.log('ADD TO NEW ARRAY: '+clients[client]);
-				createClient(clients[client]);
-				console.log('GENERATE THE CLIENT: '+clients[client]);
-				setTiles(clients[client], generateClientTiles());
-				console.log('SET THEIR TILES');
-				for (var i=0; i<40; i++)
+				for(var tileIndex=0; tileIndex < 4; tileIndex++)
 				{
-					console.log('LOOPING TO SEND TILES');
-					getTileState(i, clients[client]);
+					clients[i]['tile'+(tileIndex+1)] = newRoundTileArray[Math.floor(Math.random()*40)];
+					io.sockets.socket(clients[i]['id']).emit('tile', clients[i]['tile'+(tileIndex+1)]);
 				}
-				redisClient.keys(clients[client]+":tile*", function (err, keys)
-				{
-					keys.forEach(function(key)
-					{
-						redisClient.get(key, function(err, res)
-						{
-							redisClient.get(res+':tileValue', function(err, res)
-							{
-								//console.log(key+': '+res);
-								io.sockets.socket(clients[client]).emit('tile','{ "tileId": "'+key.substr(21,5)+'", "value": "'+res+'" }');
-							});
-						});
-					});
-				});
+				console.log(clients[i]);
+				addClientToRedis(clients[i]);
 			}
 		}
-		clients = newArray;
-		
     });
-    
+
 }

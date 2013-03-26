@@ -1,0 +1,372 @@
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600,800' rel='stylesheet' type='text/css'>
+        <style>
+        	body, html
+        	{
+	        	padding: 0;
+	        	margin: 0;
+	        	font-family: 'Open Sans', sans-serif;
+	        	background: #2fb2ef; /* Old browsers */
+				background: -moz-radial-gradient(center, ellipse cover, #2fb2ef 0%, #090b7a 100%); /* FF3.6+ */
+				background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#2fb2ef), color-stop(100%,#090b7a)); /* Chrome,Safari4+ */
+				background: -webkit-radial-gradient(center, ellipse cover, #2fb2ef 0%,#090b7a 100%); /* Chrome10+,Safari5.1+ */
+				background: -o-radial-gradient(center, ellipse cover, #2fb2ef 0%,#090b7a 100%); /* Opera 12+ */
+				background: -ms-radial-gradient(center, ellipse cover, #2fb2ef 0%,#090b7a 100%); /* IE10+ */
+				background: radial-gradient(ellipse at center, #2fb2ef 0%,#090b7a 100%); /* W3C */
+				filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#2fb2ef', endColorstr='#090b7a',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+        	}
+        	span.timer
+        	{
+	        	font-size: 40px;
+        	}
+        	div#timer_container
+        	{
+	        	width: 250px;
+	        	height: 100px;
+	        	background: silver;
+	        	position: absolute;
+	        	top: 10px;
+	        	left: 25px;
+	        	border-radius: 20px;
+	        	text-align: center;
+	        	font-size: 24px;
+	        	box-shadow: 0 0 20px black;
+        	}
+        	div#userTiles
+        	{
+	        	position:absolute;
+	        	width: 100px;
+	        	top: 150px;
+	        	margin-left: 105px;
+        	}
+        	div#userTiles .tile
+        	{
+	        	width: 80px;
+	        	height: 80px;
+	        	margin: 1% 1%;
+	        	display: block !important;
+        	}
+        	.tile
+        	{
+        		color: black;
+	        	width: 80px;
+	        	height: 80px;
+	        	background: #ccc;
+	        	border: 4px solid white;
+	        	border-radius: 5px;
+	        	padding: 0px;
+	        	font-size: 40px;
+	        	margin: 1% 1%;
+	        	display: inline-block;
+	        	text-align: center;
+	        	box-shadow:0px 0px 10px black;
+	        	cursor: pointer;
+        	}
+        	#container
+        	{
+	        	width: 880px;
+	        	padding: 0;
+	        	margin-left: 300px;
+	        	height: 520px;
+	        	background: none;
+	        	-webkit-touch-callout: none;
+				-webkit-user-select: none;
+				-khtml-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
+        	}
+        	div#overlay
+        	{
+	        	width: 100%;
+	        	height: 100%;
+	        	position: fixed;
+	        	top: 0;
+	        	left: 0;
+	        	background: #2fb2ef; /* Old browsers */
+				background: -moz-radial-gradient(center, ellipse cover, #2fb2ef 0%, #090b7a 100%); /* FF3.6+ */
+				background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#2fb2ef), color-stop(100%,#090b7a)); /* Chrome,Safari4+ */
+				background: -webkit-radial-gradient(center, ellipse cover, #2fb2ef 0%,#090b7a 100%); /* Chrome10+,Safari5.1+ */
+				background: -o-radial-gradient(center, ellipse cover, #2fb2ef 0%,#090b7a 100%); /* Opera 12+ */
+				background: -ms-radial-gradient(center, ellipse cover, #2fb2ef 0%,#090b7a 100%); /* IE10+ */
+				background: radial-gradient(ellipse at center, #2fb2ef 0%,#090b7a 100%); /* W3C */
+				filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#2fb2ef', endColorstr='#090b7a',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+        	}
+        	div#overlay-box
+        	{
+			   	width: 300px;
+			   	height: 500px;
+			   	position: absolute;
+			   	left: 50%;
+			   	top: 50%; 
+			   	margin-left: -170px;
+			   	margin-top: -270px;
+			   	background: white;
+			   	border-radius: 10px;
+			   	padding: 20px;
+			   	box-shadow: 0px 0px 50px black;
+			   	text-align: center;
+        	}
+        	div#logo
+        	{
+	        	text-align: center;
+	        	width: 200px;
+	        	margin: 0 auto;
+	        	height: 200px;
+	        	background: navy;
+	        	border-radius: 100px;
+	        	font-size: 60px;
+	        	color: navy;
+	        	font-weight: 600;
+	        	line-height: 60px;
+        	}
+        	div#logo div#text
+        	{
+	        	padding-top: 40px;
+	        	position: relative;
+	        	margin: 0 auto;
+        	}
+        	div#logo div#line
+        	{
+	        	width: 200px;
+	        	height: 120px;
+	        	padding: 0;
+	        	background: white;
+	        	position: absolute;
+	        	top: 60px;
+        	}
+        	input#username
+        	{
+	        	width: 100%;
+	        	padding: 10px;
+	        	font-size: 30px;
+	        	text-align: center;
+	        	border-radius: 10px;
+	        	border: 2px solid grey;
+	        	outline-width: 0;
+        	}
+        	div#buttons
+        	{
+	        	position: absolute;
+	        	bottom: 20px;
+	        	width: 100%;
+	        	text-align: left;
+        	}
+        	div#buttons a
+        	{
+	        	background: silver;
+	        	padding: 5px 30px;
+	        	border-radius: 10px;
+	        	font-size: 24px;
+	        	text-decoration: none;
+	        	color: black;
+        	}
+        	div#buttons a:last-child
+        	{
+	        	margin-left: 80px;
+        	}
+        </style>
+        <script>
+            $(function(){
+                var iosocket = io.connect();
+                var takenTiles = new Array();
+                
+                iosocket.on('connect', function () {
+                    ;
+     
+                    iosocket.on('disconnect', function() {
+                        ;
+                    });
+                    iosocket.on('timer', function(value) {
+	                    $('span.timer').text(value);
+	                    if(parseInt(value) > 20)
+	                    {
+		                    $('span.timer').css('color','green');
+		                    $('div#userTiles').css('display','none');
+	                    }
+	                    else if(parseInt(value) < 6 && parseInt(value) > 0)
+	                    {
+		                    $('span.timer').css('color','red');
+		                    $('div#userTiles').css('display','block');
+	                    }
+	                    else if(parseInt(value) <= 0)
+	                    {
+		                    $('div#userTiles').css('display','none');
+	                    }
+	                    else
+	                    {
+		                    $('span.timer').css('color','black');
+		                    $('div#userTiles').css('display','block');
+	                    }
+                    });
+                    iosocket.on('tileShow', function(response) {
+	                    console.log("tileShow: "+response);
+	                    var resArray = JSON.parse(response);
+	                    if(resArray['value'].substr(0,1) == 'R')
+	                    	$('div#'+resArray['tileId']).css('background','red');
+	                    else if(resArray['value'].substr(0,1) == 'G')
+	                    	$('div#'+resArray['tileId']).css('background','#0f0');
+	                    else if(resArray['value'].substr(0,1) == 'B')
+	                    	$('div#'+resArray['tileId']).css('background','blue');
+	                    else if(resArray['value'].substr(0,1) == 'Y')
+	                    	$('div#'+resArray['tileId']).css('background','yellow');
+	                    $('div#'+resArray['tileId']).css('border','4px solid white');
+	                    $('div#'+resArray['tileId']).removeClass('hidden');
+	                    $('div#'+resArray['tileId']).addClass('shown');
+	                    $('div#'+resArray['tileId']).removeClass('peeked');
+	                    $('div#'+resArray['tileId']).text(resArray['value'].substr(1,1));
+                    });
+                    iosocket.on('tilePeek', function(response) {
+	                    console.log("tilePeek: "+response);
+	                    var resArray = JSON.parse(response);
+	                    if(resArray['value'] == 'R')
+	                    	$('div#'+resArray['tileId']).css('background','#f88');
+	                    else if(resArray['value'] == 'G')
+	                    	$('div#'+resArray['tileId']).css('background','#8f8');
+	                    else if(resArray['value'] == 'B')
+	                    	$('div#'+resArray['tileId']).css('background','#88f');
+	                    else if(resArray['value'] == 'Y')
+	                    	$('div#'+resArray['tileId']).css('background','#ff8');
+	                    $('div#'+resArray['tileId']).css('border','4px solid white');
+	                    $('div#'+resArray['tileId']).removeClass('hidden');
+	                    $('div#'+resArray['tileId']).removeClass('shown');
+	                    $('div#'+resArray['tileId']).addClass('peeked');
+	                    $('div#'+resArray['tileId']).text("_");
+
+                    });
+                    iosocket.on('tileHide', function(response) {
+	                    console.log("tileHide: "+response);
+	                    $('div#'+response).css('background','#ccc');
+	                    $('div#'+response).addClass('hidden');
+	                    $('div#'+response).removeClass('shown');
+	                    $('div#'+response).removeClass('peeked');
+	                    $('div#'+response).text('_');
+                    });
+                    iosocket.on('tile', function(response) {
+                    	var resArray = JSON.parse(response);
+                    	$('div#'+resArray['tileId']).remove();
+                    	$('div#userTiles').append('<div id="'+resArray['tileId']+'" class="hidden tile '+resArray['value']+'">'+resArray['value'].substr(1,1)+'</div>');
+	                    if(resArray['value'].substr(0,1) == 'R')
+	                    	$('div#'+resArray['tileId']).css('background','#f00');
+	                    else if(resArray['value'].substr(0,1) == 'G')
+	                    	$('div#'+resArray['tileId']).css('background','#0f0');
+	                    else if(resArray['value'].substr(0,1) == 'B')
+	                    	$('div#'+resArray['tileId']).css('background','#00f');
+	                    else if(resArray['value'].substr(0,1) == 'Y')
+	                    	$('div#'+resArray['tileId']).css('background','#ff0');
+	                    $('div#'+resArray['tileId']).css('border','4px solid white');
+	                    takenTiles.forEach(function(key)
+	                    {
+	                    	if(key.substr(0,1) == 'R')
+		                    	$('div.'+key).css('background','#800');
+		                    else if(key.substr(0,1) == 'G')
+		                    	$('div.'+key).css('background','#080');
+		                    else if(key.substr(0,1) == 'B')
+		                    	$('div.'+key).css('background','#008');
+		                    else if(key.substr(0,1) == 'Y')
+		                    	$('div.'+key).css('background','#880');
+		                    $('div.'+key).css('border','4px solid black');
+	                    });
+                    	
+	                    console.log("tile: "+response);
+                    });
+                    iosocket.on('tileTaken', function(response) {
+	                    console.log("tile: "+response);
+	                    var resArray = JSON.parse(response);
+	                    if(resArray['value'].substr(0,1) == 'R')
+	                    	$('div#'+resArray['tileId']).css('background','#800');
+	                    else if(resArray['value'].substr(0,1) == 'G')
+	                    	$('div#'+resArray['tileId']).css('background','#080');
+	                    else if(resArray['value'].substr(0,1) == 'B')
+	                    	$('div#'+resArray['tileId']).css('background','#008');
+	                    else if(resArray['value'].substr(0,1) == 'Y')
+	                    	$('div#'+resArray['tileId']).css('background','#880');
+	                    $('div#'+resArray['tileId']).css('border','4px solid black');
+	                    $('div#'+resArray['tileId']).removeClass('hidden');
+	                    $('div#'+resArray['tileId']).removeClass('shown');
+	                    $('div#'+resArray['tileId']).addClass('peeked');
+	                    $('div#'+resArray['tileId']).text(resArray['value'].substr(1,1));
+	                    console.log('div.'+resArray['value']);
+	                    takenTiles.push(resArray['value']);
+	                    takenTiles.forEach(function(key)
+	                    {
+	                    	if(key.substr(0,1) == 'R')
+		                    	$('div.'+key).css('background','#800');
+		                    else if(key.substr(0,1) == 'G')
+		                    	$('div.'+key).css('background','#080');
+		                    else if(key.substr(0,1) == 'B')
+		                    	$('div.'+key).css('background','#008');
+		                    else if(key.substr(0,1) == 'Y')
+		                    	$('div.'+key).css('background','#880');
+		                    $('div.'+key).css('border','4px solid black');
+	                    });
+                    });
+                    
+                    iosocket.on('reset', function(response) {
+	                   $('div.tile').css('border','4px solid white');
+	                   takenTiles = new Array();
+                    });
+                    
+                    iosocket.on('score', function(response) {
+	                   $('span#score').text(response);
+                    });
+                });
+                
+                
+                $(document).ready(function(){
+	               for(var i=0; i<40; i++)
+	               {
+		               $('div#container').append('<div id="'+i+'" class="hidden tile">'+i+'</div>');
+	               }
+                });
+                
+                $('div.tile').live('click', function()
+                {
+                	if($('div#userTiles').text() != "" && parseInt($('span.timer').text()) < 21 && parseInt($('span.timer').text()) > 0)
+                	{
+		                console.log($(this).attr('id'));
+		                if($(this).hasClass('hidden'))
+		                {
+		                	console.log('test');
+		                	iosocket.emit('tileShowRequest', $(this).attr('id'));
+		                }
+		                else if($(this).hasClass('shown'))
+		                {
+			                iosocket.emit('tileHideRequest', $(this).attr('id'));
+		                }
+	                }
+                })
+                
+                $('a#next').live('click', function()
+                {
+	               $('div#overlay').css('display','none'); 
+                });
+            });
+
+        </script>
+    </head>
+    <body>
+    	<div id="userTiles"></div>
+    	<div id="timer_container">
+    		TIME REMAINING<br />
+    		<span class="show timer"></span>
+    	</div>
+        <div id="container"></div>
+        <span id="score">0</span>
+        
+        <div id="overlay">
+	        <div id="overlay-box">
+	        	<div id="logo"><div id="line"></div><div id="text">FLIP<br />TILE</div></div>
+	        	<br /><br />Hey there! Welcome to Flip Tile.<br /><br /> Let's get started by getting your name:<br /><br />
+	        	<input type="text" id="username" />
+	        	<div id="buttons">
+	        		<a href="#skip" id="skip">Skip</a>
+	        		<a href="#next" id="next">Next</a>
+	        	</div>
+	        </div>
+        </div>
+    </body>
+</html>
