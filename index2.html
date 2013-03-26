@@ -2,9 +2,268 @@
     <head>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
+        <style>
+        	body, html
+        	{
+	        	padding: 0;
+	        	margin: 0;
+        	}
+        	body
+        	{
+	        	background: #2fb2ef; /* Old browsers */
+				background: -moz-radial-gradient(center, ellipse cover, #2fb2ef 0%, #090b7a 100%); /* FF3.6+ */
+				background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#2fb2ef), color-stop(100%,#090b7a)); /* Chrome,Safari4+ */
+				background: -webkit-radial-gradient(center, ellipse cover, #2fb2ef 0%,#090b7a 100%); /* Chrome10+,Safari5.1+ */
+				background: -o-radial-gradient(center, ellipse cover, #2fb2ef 0%,#090b7a 100%); /* Opera 12+ */
+				background: -ms-radial-gradient(center, ellipse cover, #2fb2ef 0%,#090b7a 100%); /* IE10+ */
+				background: radial-gradient(ellipse at center, #2fb2ef 0%,#090b7a 100%); /* W3C */
+				filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#2fb2ef', endColorstr='#090b7a',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+
+        	}
+        	div#page_container
+        	{
+	        	width: 1200px;
+	        	margin: 0 auto;
+	        	background: ;
+	        	position: relative;
+        	}
+        	div#timer
+        	{
+        		margin: 20px;
+        		margin-bottom: 10px;
+	        	background: #0f0;
+	        	height: 110px;
+	        	width: 260px;
+	        	text-align: center;
+	        	-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				font-size: 24px;
+        	}
+        	div#timer_time
+        	{
+	        	font-size: 54px;
+	        	
+        	}
+        	div#scoreboard
+        	{
+        		margin: 10px 20px;
+	        	background: #00f;
+	        	height: 110px;
+	        	width: 260px;
+	        	text-align: center;
+	        	-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				font-size: 24px;
+        	}
+        	div#scoreboard div#score
+        	{
+	        	font-size: 54px;
+        	}
+        	div#leaderboard
+        	{
+	        	margin: 10px 20px;
+	        	background: grey;
+	        	height: 300px;
+	        	width: 260px;
+	        	text-align: center;
+	        	-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				font-size: 24px;
+				display:none;
+        	}
+        	div#user_tile_container
+        	{
+        		margin: 10px 20px;
+	        	background: grey;
+	        	height: 300px;
+	        	width: 260px;
+	        	text-align: center;
+	        	-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				font-size: 24px;
+        	}
+        	div#user_tile_container div#tiles
+        	{
+	        	margin: 18px 0px 0px 18px;
+        	}
+        	div#left_column
+        	{
+	        	position: absolute;
+        	}
+        	div#tile_container
+        	{
+	        	position: relative;
+	        	/*border-spacing: 20px;
+	        	display: table;*/
+	        	width: 900px;
+	        	left: 300px;
+	        	background: ;
+        	}
+        	div.tile
+        	{
+	        	background: white;
+	        	width: 84px;
+	        	height: 90px;
+	        	float: left;
+	        	/*display: table-cell;*/
+	        	margin: 10px;
+	        	-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+				border: 4px solid grey;
+				font-size: 72px;
+				text-align: center;
+				-webkit-touch-callout: none;
+				-webkit-user-select: none;
+				-khtml-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
+        	}
+        	div.tile.Y
+        	{
+	        	background: #ff0;
+        	}
+        	div.tile.B
+        	{
+	        	background: #00f;
+        	}
+        	div.tile.R
+        	{
+	        	background: #f00;
+        	}
+        	div.tile.G
+        	{
+	        	background: #0f0;
+        	}
+        	div.tile.Y.taken
+        	{
+	        	background: #880;
+        	}
+        	div.tile.B.taken
+        	{
+	        	background: #008;
+        	}
+        	div.tile.R.taken
+        	{
+	        	background: #800;
+        	}
+        	div.tile.G.taken
+        	{
+	        	background: #080;
+        	}
+        	div#overlay
+        	{
+	        	width: 100%;
+	        	height: 100%;
+	        	position: fixed;
+	        	top: 0;
+	        	left: 0;
+	        	background: #2fb2ef; /* Old browsers */
+				background: -moz-radial-gradient(center, ellipse cover, #2fb2ef 0%, #090b7a 100%); /* FF3.6+ */
+				background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#2fb2ef), color-stop(100%,#090b7a)); /* Chrome,Safari4+ */
+				background: -webkit-radial-gradient(center, ellipse cover, #2fb2ef 0%,#090b7a 100%); /* Chrome10+,Safari5.1+ */
+				background: -o-radial-gradient(center, ellipse cover, #2fb2ef 0%,#090b7a 100%); /* Opera 12+ */
+				background: -ms-radial-gradient(center, ellipse cover, #2fb2ef 0%,#090b7a 100%); /* IE10+ */
+				background: radial-gradient(ellipse at center, #2fb2ef 0%,#090b7a 100%); /* W3C */
+				filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#2fb2ef', endColorstr='#090b7a',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+        	}
+        	div#overlay-box
+        	{
+			   	width: 300px;
+			   	height: 500px;
+			   	position: absolute;
+			   	left: 50%;
+			   	top: 50%; 
+			   	margin-left: -170px;
+			   	margin-top: -270px;
+			   	background: white;
+			   	border-radius: 10px;
+			   	padding: 20px;
+			   	box-shadow: 0px 0px 50px black;
+			   	text-align: center;
+        	}
+        	div#logo
+        	{
+	        	text-align: center;
+	        	width: 200px;
+	        	margin: 0 auto;
+	        	height: 200px;
+	        	background: navy;
+	        	border-radius: 100px;
+	        	font-size: 60px;
+	        	color: navy;
+	        	font-weight: 600;
+	        	line-height: 60px;
+        	}
+        	div#logo div#text
+        	{
+	        	padding-top: 40px;
+	        	position: relative;
+	        	margin: 0 auto;
+        	}
+        	div#logo div#line
+        	{
+	        	width: 200px;
+	        	height: 120px;
+	        	padding: 0;
+	        	background: white;
+	        	position: absolute;
+	        	top: 60px;
+        	}
+        	input#username
+        	{
+	        	width: 100%;
+	        	padding: 10px;
+	        	font-size: 30px;
+	        	text-align: center;
+	        	border-radius: 10px;
+	        	border: 2px solid grey;
+	        	outline-width: 0;
+        	}
+        	div#buttons
+        	{
+	        	position: absolute;
+	        	bottom: 20px;
+	        	width: 100%;
+	        	text-align: left;
+        	}
+        	div#buttons a
+        	{
+	        	background: silver;
+	        	padding: 5px 30px;
+	        	border-radius: 10px;
+	        	font-size: 24px;
+	        	text-decoration: none;
+	        	color: black;
+        	}
+        	div#buttons a:last-child
+        	{
+	        	margin-left: 80px;
+        	}
+        </style>
         <script>
             $(function(){
                 var iosocket = io.connect();
+                var currentTime = -1;
+                var inPlay = false;
+                var leaderBoard = new Array();
+                var leaderBoardCount = 0;
+                
+                function sortLeaderboard()
+                {
+                	leaderBoard.sort(function(a,b){
+					    return b['score'] - a['score'];
+					});
+	                for(var i in leaderBoard)
+	                {
+		                $('div#leaderboard').append(leaderBoard[i]['userName']+'<br />');
+	                }
+                }
                 
                 iosocket.on('connect', function () {
 	                console.log('CONNECTED');
@@ -16,9 +275,92 @@
                     });
                     iosocket.on('timer', function(data) {
                         console.log('Timer: '+data);
+                        if(data >= 0)
+                        {
+                        	$('div#timer_time').text(data);
+                        	$('div#user_tile_container').css('display','block');
+                        	$('div#leaderboard').css('display','none');
+                        }
+                        else
+                        {
+	                        $('div#user_tile_container').css('display','none');
+                        	$('div#leaderboard').css('display','block');
+                        }
+                        currentTime = data;
+                        if(data == -2)
+                        {
+	                        sortLeaderboard();
+                        }
                     });
                     iosocket.on('tile', function(data) {
                         console.log('Tile: '+data);
+                        $('div#user_tile_container div#tiles').append('<div class="tile '+data.substr(0,1)+'" id="'+data+'">'+data.substr(1,1)+'</div>');
+                        inPlay = true;
+                    });
+                    iosocket.on('tileShow', function(data) {
+                        console.log('Tile Show: '+data);
+                        var tile = JSON.parse(data);
+                        if(tile['value'].substr(0,1) == 'R')
+	                    	$('div#'+tile['tileId']).css('background','#f00');
+	                    else if(tile['value'].substr(0,1) == 'G')
+	                    	$('div#'+tile['tileId']).css('background','#0f0');
+	                    else if(tile['value'].substr(0,1) == 'B')
+	                    	$('div#'+tile['tileId']).css('background','#00f');
+	                    else if(tile['value'].substr(0,1) == 'Y')
+	                    	$('div#'+tile['tileId']).css('background','#ff0');
+                        $('div#'+tile['tileId']).text(tile['value'].substr(1,1));
+                    });
+                    iosocket.on('tileHide', function(data) {
+                        console.log('Tile Hide: '+data);
+                        $('div#'+data).css('background','white');
+                        $('div#'+data).text('');
+                    });
+                    iosocket.on('tilePeek', function(data) {
+                        console.log('Tile Peek: '+data);
+                        var tile = JSON.parse(data);
+                        if(tile['value'] == 'R')
+	                    	$('div#'+tile['tileId']).css('background','#f88');
+	                    else if(tile['value'] == 'G')
+	                    	$('div#'+tile['tileId']).css('background','#8f8');
+	                    else if(tile['value'] == 'B')
+	                    	$('div#'+tile['tileId']).css('background','#88f');
+	                    else if(tile['value'] == 'Y')
+	                    	$('div#'+tile['tileId']).css('background','#ff8');
+                        $('div#'+tile['tileId']).text('');
+                    });
+                    iosocket.on('tileTaken', function(data) {
+                        console.log('Tile Taken: '+data);
+                        var tile = JSON.parse(data);
+                        if(tile['value'].substr(0,1) == 'R')
+	                    	$('div#'+tile['tileId']).css('background','#800');
+	                    else if(tile['value'].substr(0,1) == 'G')
+	                    	$('div#'+tile['tileId']).css('background','#080');
+	                    else if(tile['value'].substr(0,1) == 'B')
+	                    	$('div#'+tile['tileId']).css('background','#008');
+	                    else if(tile['value'].substr(0,1) == 'Y')
+	                    	$('div#'+tile['tileId']).css('background','#880');
+                        $('div#'+tile['tileId']).text(tile['value'].substr(1,1));
+                        $('div#tiles div#'+tile['value']).addClass('taken');
+                    });
+                    iosocket.on('score', function(data) {
+                        console.log('Score: '+data);
+                        $('div#scoreboard div#score').text(data);
+                    });
+                    iosocket.on('reset', function() {
+                        console.log('RESET');
+                        $('div#user_tile_container div#tiles').text('');
+                        $('div#user_tile_container div#tiles').removeClass('taken');
+                        $('div#scoreboard div#score').text(0);
+                        $('div.tile').css('color','black');
+                        $('div#tile_container div.tile').text('');
+                        $('div#tile_container div.tile').css('background','white');
+                        leaderBoard = new Array();
+                        leaderBoardCount = 0;
+                    });
+                    iosocket.on('leaderboardValue', function(data) {
+                        console.log('LEADERBOARD: '+data);
+                        leaderBoard[leaderBoardCount] = JSON.parse(data);
+                        leaderBoardCount++;
                     });
                 });
                 
@@ -29,14 +371,26 @@
                 
                 $('div').live('click', function()
                 {
-	               	iosocket.emit('requestTile', $(this).attr('id'));
+                	if(currentTime > 0 && inPlay)
+	               		iosocket.emit('requestTile', $(this).attr('id'));
+                });
+                
+                $('a#go').live('click', function()
+                {
+	               $('div#overlay').css('display','none');
+	               iosocket.emit('setName', $('input#username').val());
                 });
                 
                 $(document).ready(function(){
 	               
 	               for(var i=0; i<40; i++)
 	               {
-		               $('body').append('<div id="'+i+'">'+i+'</div>');
+		               //if(i == 0 || i == 8 || i == 16 || i == 24 || i == 32)
+		               		//$('div#tile_container').append('<div style="display: table-row">');
+		               $('div#tile_container').append('<div class="tile" id="'+i+'"> </div>');
+		                //if(i == 7 || i == 15 || i == 23 || i == 31 || i == 39)
+		                	//$('div#tile_container').append('</div>');
+		                
 	               }
 	                
                 });
@@ -45,5 +399,35 @@
         </script>
     </head>
     <body>
+    	<div id="page_container">
+    		<div id="left_column">
+		    	<div id="timer">
+			    	TIME REMAINING
+			    	<div id="timer_time">0</div>
+		    	</div>
+		    	<div id="scoreboard">
+			    	SCORE
+			    	<div id="score">0</div>
+		    	</div>
+		    	<div id="user_tile_container">
+			    	YOUR TILES
+			    	<div id="tiles">YOU WILL BE<br /> DEALT TILES AT<br /> THE START OF THE NEXT ROUND</div>
+		    	</div>
+		    	<div id="leaderboard">
+			    	LEADERBOARD
+		    	</div>
+    		</div>
+	    	<div id="tile_container"></div>
+	    	<div id="overlay">
+	        <div id="overlay-box">
+	        	<div id="logo"><div id="line"></div><div id="text">FLIP<br />TILE</div></div>
+	        	<br /><br />Hey there! Welcome to Flip Tile.<br /><br /> Let's get started by getting your name:<br /><br />
+	        	<input type="text" id="username" />
+	        	<div id="buttons">
+	        		<a href="#go" id="go">Let's Go</a>
+	        	</div>
+	        </div>
+        </div>
+    	</div>
     </body>
 </html>
