@@ -2,11 +2,13 @@
     <head>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600,800' rel='stylesheet' type='text/css'>
         <style>
         	body, html
         	{
 	        	padding: 0;
 	        	margin: 0;
+	        	font-family: 'Open Sans', sans-serif;
         	}
         	body
         	{
@@ -31,26 +33,33 @@
         	{
         		margin: 20px;
         		margin-bottom: 10px;
-	        	background: #0f0;
-	        	height: 110px;
-	        	width: 260px;
+	        	background: rgba(0,0,0,0.4);
+	        	border: 2px solid black;
+	        	color: #ddd;
+	        	padding-top: 5px;
+	        	width: 256px;
+	        	height: 105px;
 	        	text-align: center;
 	        	-webkit-border-radius: 10px;
 				-moz-border-radius: 10px;
 				border-radius: 10px;
 				font-size: 24px;
+				
         	}
         	div#timer_time
         	{
-	        	font-size: 54px;
+	        	font-size: 48px;
 	        	
         	}
         	div#scoreboard
         	{
         		margin: 10px 20px;
-	        	background: #00f;
-	        	height: 110px;
-	        	width: 260px;
+	        	background: rgba(0,0,0,0.4);
+	        	border: 2px solid black;
+	        	color: #ddd;
+	        	padding-top: 5px;
+	        	width: 256px;
+	        	height: 105px;
 	        	text-align: center;
 	        	-webkit-border-radius: 10px;
 				-moz-border-radius: 10px;
@@ -59,14 +68,17 @@
         	}
         	div#scoreboard div#score
         	{
-	        	font-size: 54px;
+	        	font-size: 48px;
         	}
         	div#leaderboard
         	{
 	        	margin: 10px 20px;
-	        	background: grey;
-	        	height: 300px;
-	        	width: 260px;
+	        	background: rgba(0,0,0,0.4);
+	        	border: 2px solid black;
+	        	color: #ddd;
+	        	padding-top: 5px;
+	        	width: 256px;
+	        	height: 295px;
 	        	text-align: center;
 	        	-webkit-border-radius: 10px;
 				-moz-border-radius: 10px;
@@ -77,9 +89,12 @@
         	div#user_tile_container
         	{
         		margin: 10px 20px;
-	        	background: grey;
-	        	height: 300px;
-	        	width: 260px;
+	        	background: rgba(0,0,0,0.4);
+	        	border: 2px solid black;
+	        	color: #ddd;
+	        	padding-top: 5px;
+	        	width: 256px;
+	        	height: 295px;
 	        	text-align: center;
 	        	-webkit-border-radius: 10px;
 				-moz-border-radius: 10px;
@@ -105,17 +120,18 @@
         	}
         	div.tile
         	{
-	        	background: white;
+	        	background: rgba(0,0,0,0.4);
+	        	color: black;
 	        	width: 84px;
 	        	height: 90px;
 	        	float: left;
 	        	/*display: table-cell;*/
-	        	margin: 10px;
+	        	margin: 20px 10px 0px 10px;
 	        	-webkit-border-radius: 10px;
 				-moz-border-radius: 10px;
 				border-radius: 10px;
-				border: 4px solid grey;
-				font-size: 72px;
+				border: 2px solid black;
+				font-size: 64px;
 				text-align: center;
 				-webkit-touch-callout: none;
 				-webkit-user-select: none;
@@ -123,6 +139,7 @@
 				-moz-user-select: none;
 				-ms-user-select: none;
 				user-select: none;
+				box-shadow: 0 5px 20px black;
         	}
         	div.tile.Y
         	{
@@ -142,19 +159,19 @@
         	}
         	div.tile.Y.taken
         	{
-	        	background: #880;
+	        	background: #660;
         	}
         	div.tile.B.taken
         	{
-	        	background: #008;
+	        	background: #006;
         	}
         	div.tile.R.taken
         	{
-	        	background: #800;
+	        	background: #600;
         	}
         	div.tile.G.taken
         	{
-	        	background: #080;
+	        	background: #060;
         	}
         	div#overlay
         	{
@@ -228,13 +245,13 @@
         	div#buttons
         	{
 	        	position: absolute;
-	        	bottom: 20px;
+	        	bottom: 50px;
 	        	width: 100%;
 	        	text-align: left;
         	}
         	div#buttons a
         	{
-	        	background: silver;
+	        	background: #0d0;
 	        	padding: 5px 30px;
 	        	border-radius: 10px;
 	        	font-size: 24px;
@@ -245,6 +262,13 @@
         	{
 	        	margin-left: 80px;
         	}
+        	table#leaderboard
+        	{
+	        	margin: 0 auto;
+	        	width:100%;
+	        	text-align: center;
+	        	color: #ddd;
+        	}
         </style>
         <script>
             $(function(){
@@ -252,7 +276,7 @@
                 var currentTime = -1;
                 var inPlay = false;
                 var leaderBoard = new Array();
-                var leaderBoardCount = 1;
+                var leaderBoardCount = 0;
                 var userName = '';
                 
                 function sortLeaderboard()
@@ -265,7 +289,8 @@
 
 	                for(var i in leaderBoard)
 	                {
-		                $('table#leaderboard').append('<tr><td>'+leaderBoard[i]['userName']+'</td><td>'+leaderBoard[i]['score']+'</td></tr>');
+	                	if(i < 9)
+		                	$('table#leaderboard').append('<tr><td>'+leaderBoard[i]['userName']+'</td><td>'+leaderBoard[i]['score']+'</td></tr>');
 	                }
                 }
                 
@@ -284,11 +309,14 @@
                         	$('div#timer_time').text(data);
                         	$('div#user_tile_container').css('display','block');
                         	$('div#leaderboard').css('display','none');
+                        	$('span#timer_label').text('TIME REMAINING');
                         }
                         else
                         {
 	                        $('div#user_tile_container').css('display','none');
                         	$('div#leaderboard').css('display','block');
+                        	$('span#timer_label').text('NEXT ROUND IN');
+                        	$('div#timer_time').text(10+data);
                         }
                         if(data == 0 && inPlay == true)
                         {		     
@@ -320,7 +348,7 @@
                     });
                     iosocket.on('tileHide', function(data) {
                         console.log('Tile Hide: '+data);
-                        $('div#'+data).css('background','white');
+                        $('div#'+data).css('background','rgba(0,0,0,0.4)');
                         $('div#'+data).text('');
                     });
                     iosocket.on('tilePeek', function(data) {
@@ -340,13 +368,13 @@
                         console.log('Tile Taken: '+data);
                         var tile = JSON.parse(data);
                         if(tile['value'].substr(0,1) == 'R')
-	                    	$('div#'+tile['tileId']).css('background','#800');
+	                    	$('div#'+tile['tileId']).css('background','#600');
 	                    else if(tile['value'].substr(0,1) == 'G')
-	                    	$('div#'+tile['tileId']).css('background','#080');
+	                    	$('div#'+tile['tileId']).css('background','#060');
 	                    else if(tile['value'].substr(0,1) == 'B')
-	                    	$('div#'+tile['tileId']).css('background','#008');
+	                    	$('div#'+tile['tileId']).css('background','#006');
 	                    else if(tile['value'].substr(0,1) == 'Y')
-	                    	$('div#'+tile['tileId']).css('background','#880');
+	                    	$('div#'+tile['tileId']).css('background','#660');
                         $('div#'+tile['tileId']).text(tile['value'].substr(1,1));
                         $('div#tiles div#'+tile['value']).addClass('taken');
                     });
@@ -361,7 +389,7 @@
                         $('div#scoreboard div#score').text(0);
                         $('div.tile').css('color','black');
                         $('div#tile_container div.tile').text('');
-                        $('div#tile_container div.tile').css('background','white');
+                        $('div#tile_container div.tile').css('background','rgba(0,0,0,0.4)');
                         $('table#leaderboard').text('');
                         leaderBoard = new Array();
                         leaderBoardCount = 0;
@@ -391,6 +419,15 @@
 	               userName = $('input#username').val();
                 });
                 
+                $('input#userName').keypress(function(event) {
+                if(event.which == 13) {
+                    //$('div#overlay').css('display','none');
+                    $('div#overlay').fadeOut(1000);
+	               iosocket.emit('setName', $('input#username').val());
+	               userName = $('input#username').val();
+                }
+            });
+                
                 $(document).ready(function(){
 	               
 	               for(var i=0; i<40; i++)
@@ -412,7 +449,7 @@
     	<div id="page_container">
     		<div id="left_column">
 		    	<div id="timer">
-			    	TIME REMAINING
+			    	<span id="timer_label">TIME REMAINING</span>
 			    	<div id="timer_time">0</div>
 		    	</div>
 		    	<div id="scoreboard">
@@ -435,7 +472,7 @@
 	        	<br /><br />Hey there! Welcome to Flip Tile.<br /><br /> Let's get started by getting your name:<br /><br />
 	        	<input type="text" id="username" />
 	        	<div id="buttons">
-	        		<a href="#go" id="go">Let's Go</a>
+	        		<a href="#go" id="go">Let's Go!</a>
 	        	</div>
 	        </div>
         </div>
